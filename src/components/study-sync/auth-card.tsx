@@ -1,0 +1,25 @@
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { ArrowRight, BookOpen, GraduationCap, LoaderCircle, UsersRound } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Logo } from "./logo";
+
+type Role="student"|"parent"|"teacher";
+export function AuthCard({mode}:{mode:"login"|"register"}){
+ const navigate=useNavigate(); const [loading,setLoading]=useState(false); const [message,setMessage]=useState(""); const [role,setRole]=useState<Role>("student");
+ async function submit(e:FormEvent<HTMLFormElement>){e.preventDefault();setLoading(true);setMessage("");const fd=new FormData(e.currentTarget);const email=String(fd.get("email"));const password=String(fd.get("password"));
+  if(mode==="login"){const {error}=await supabase.auth.signInWithPassword({email,password});if(error)setMessage(error.message);else await navigate({to:"/profile"});}
+  else {const fullName=String(fd.get("fullName"));const institution=String(fd.get("institution"));const grade=String(fd.get("grade"));const {data,error}=await supabase.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin+"/login",data:{full_name:fullName,role,institution,grade_or_subject:grade}}});if(error)setMessage(error.message);else if(data.session){await supabase.from("profiles").insert({user_id:data.user?.id??"",full_name:fullName,role,institution,grade_or_subject:grade});await navigate({to:"/profile"});}else setMessage("Check your email to confirm your account, then sign in.");}
+  setLoading(false);
+ }
+ async function google(){setLoading(true);const result=await lovable.auth.signInWithOAuth("google",{redirect_uri:window.location.origin+"/login"});if(result.error){setMessage(result.error.message);setLoading(false);}else if(!result.redirected) await navigate({to:"/profile"});}
+ return <div className="flex min-h-screen items-center justify-center px-5 py-28"><div className="w-full max-w-lg"><div className="mb-8 text-center"><Logo/><h1 className="mt-8 text-3xl font-semibold">{mode==="login"?"Welcome back":"Create your Study Sync profile"}</h1><p className="mt-2 text-sm text-muted-foreground">{mode==="login"?"Your academic world is waiting.":"Choose your role and make learning more connected."}</p></div><div className="glass-panel rounded-lg p-6 sm:p-8">
+ {mode==="register"&&<div className="mb-6 grid grid-cols-3 gap-2">{([{r:"student",i:GraduationCap,l:"Student"},{r:"parent",i:UsersRound,l:"Parent"},{r:"teacher",i:BookOpen,l:"Teacher"}] as const).map(({r,i:Icon,l})=><Button key={r} type="button" variant={role===r?"default":"outline"} className="h-16 flex-col gap-1" onClick={()=>setRole(r)}><Icon/>{l}</Button>)}</div>}
+ <form onSubmit={submit} className="space-y-4">{mode==="register"&&<><Field label="Full name" name="fullName" placeholder="Maya Chen"/><Field label={role==="teacher"?"School or institution":role==="parent"?"School community":"School or university"} name="institution" placeholder="Northbridge Academy"/><Field label={role==="teacher"?"Subject taught":role==="parent"?"Student year level":"Grade or course"} name="grade" placeholder={role==="teacher"?"Physics":"Year 12"}/></>}<Field label="Email" name="email" type="email" placeholder="you@example.com"/><Field label="Password" name="password" type="password" placeholder="At least 8 characters" minLength={8}/>{mode==="login"&&<div className="flex items-center justify-between text-xs"><label className="flex items-center gap-2 text-muted-foreground"><input type="checkbox" name="remember" className="accent-primary"/>Remember me</label><Link to="/forgot-password" className="text-primary">Forgot password?</Link></div>}{message&&<p className="rounded-md border border-border bg-secondary p-3 text-sm text-muted-foreground">{message}</p>}<Button className="h-11 w-full" disabled={loading}>{loading?<LoaderCircle className="animate-spin"/>:<>{mode==="login"?"Log in":"Create account"}<ArrowRight/></>}</Button></form>
+ <div className="my-5 flex items-center gap-3 text-[10px] uppercase text-muted-foreground"><span className="h-px flex-1 bg-border"/>or continue with<span className="h-px flex-1 bg-border"/></div><Button type="button" variant="outline" className="h-11 w-full" onClick={google}>G&nbsp; Continue with Google</Button><p className="mt-6 text-center text-sm text-muted-foreground">{mode==="login"?"New to Study Sync? ":"Already have an account? "}<Link to={mode==="login"?"/register":"/login"} className="font-medium text-primary">{mode==="login"?"Create an account":"Log in"}</Link></p></div></div></div>
+}
+function Field({label,name,type="text",placeholder,minLength}:{label:string;name:string;type?:string;placeholder:string;minLength?:number}){return <div className="space-y-2"><Label htmlFor={name}>{label}</Label><Input id={name} name={name} type={type} placeholder={placeholder} required minLength={minLength} className="h-11 bg-background/35"/></div>}
