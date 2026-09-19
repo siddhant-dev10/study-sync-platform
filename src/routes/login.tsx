@@ -1,0 +1,3 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { AuthCard } from "@/components/study-sync/auth-card";
+export const Route=createFileRoute("/login")({head:()=>({meta:[{title:"Log In — Study Sync"},{name:"description",content:"Log in to your Study Sync academic workspace."},{property:"og:title",content:"Log In — Study Sync"},{property:"og:description",content:"Return to your connected academic workspace."},{property:"og:type",content:"website"},{name:"twitter:card",content:"summary"}]}),component:()=> <AuthCard mode="login"/>});
