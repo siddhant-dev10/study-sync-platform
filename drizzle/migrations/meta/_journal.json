@@ -8,6 +8,13 @@
       "when": 1789797005362,
       "tag": "0000_create_study_sync_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790148837437,
+      "tag": "0001_create_download_counter",
+      "breakpoints": true
     }
   ]
 }
