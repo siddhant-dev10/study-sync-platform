@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      download_stats: {
+        Row: {
+          download_count: number
+          platform: string
+          updated_at: string
+        }
+        Insert: {
+          download_count?: number
+          platform: string
+          updated_at?: string
+        }
+        Update: {
+          download_count?: number
+          platform?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           assignment_count: number
@@ -70,7 +88,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_download: { Args: { _platform: string }; Returns: number }
     }
     Enums: {
       user_role: "student" | "parent" | "teacher"
